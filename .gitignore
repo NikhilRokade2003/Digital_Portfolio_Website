@@ -1,0 +1,44 @@
+# .NET Core
+bin/
+obj/
+*.user
+*.userosscache
+*.suo
+*.dll
+*.exe
+.vs/
+.vscode/
+
+# Environment Files
+appsettings.Development.json
+
+# Logs
+*.log
+
+# Database
+*.db
+*.sqlite
+
+# Uploads
+wwwroot/uploads/*
+!wwwroot/uploads/.gitkeep
+!wwwroot/uploads/profiles/.gitkeep
+!wwwroot/uploads/projects/.gitkeep
+
+# Dependencies
+node_modules/
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Build results
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+build/
+bld/
+[Bb]in/
+[Oo]bj/
