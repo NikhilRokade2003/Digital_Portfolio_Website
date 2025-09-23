@@ -20,7 +20,12 @@ namespace DigitalPortfolioBackend.Models
 
         [Required]
         [JsonIgnore]
-        public required string PasswordHash { get; set; }
+        public string PasswordHash { get; set; } = string.Empty;
+
+        // Role: "User" or "Admin"
+        [Required]
+        [MaxLength(20)]
+        public string Role { get; set; } = "User";
 
         // Navigation property
         public required ICollection<Portfolio> Portfolios { get; set; } = new List<Portfolio>();

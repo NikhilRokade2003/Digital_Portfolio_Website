@@ -173,6 +173,16 @@ namespace DigitalPortfolioBackend.Controllers
             // Check if the user is the owner of this portfolio
             int? userId = GetCurrentUserId();
             bool isOwner = userId.HasValue && portfolio.UserId == userId.Value;
+
+            // If portfolio is private and user is not owner, check access approval
+            if (!portfolio.IsPublic && !isOwner)
+            {
+                var approved = await _context.AccessRequests.AnyAsync(a => a.PortfolioId == id && a.RequesterUserId == userId && a.Status == AccessRequestStatus.Approved);
+                if (!approved)
+                {
+                    return Forbid();
+                }
+            }
             
             // Create the DTO with basic information
             var portfolioDto = new PortfolioDto
@@ -276,6 +286,40 @@ namespace DigitalPortfolioBackend.Controllers
                 }).ToList();
             }
 
+            // Log view for analytics/notifications
+            try
+            {
+                var viewLog = new PortfolioViewLog
+                {
+                    PortfolioId = portfolio.Id,
+                    Portfolio = portfolio,
+                    ViewerUserId = userId,
+                    Viewer = null,
+                    ViewerName = userId.HasValue ? (await _context.Users.Where(u => u.Id == userId.Value).Select(u => u.FullName).FirstOrDefaultAsync()) : null,
+                    ViewerEmail = userId.HasValue ? (await _context.Users.Where(u => u.Id == userId.Value).Select(u => u.Email).FirstOrDefaultAsync()) : null,
+                    ViewedAt = DateTime.UtcNow
+                };
+                _context.PortfolioViewLogs.Add(viewLog);
+
+                // Notify owner (without spamming: only when viewer is authenticated)
+                if (userId.HasValue && !isOwner)
+                {
+                    _context.Notifications.Add(new Notification
+                    {
+                        UserId = portfolio.UserId,
+                        User = portfolio.User,
+                        Type = NotificationType.PortfolioViewed,
+                        Title = "Your portfolio was viewed",
+                        Message = $"{viewLog.ViewerName} viewed your portfolio '{portfolio.Title}'.",
+                        PortfolioId = portfolio.Id,
+                        CreatedAt = DateTime.UtcNow
+                    });
+                }
+
+                await _context.SaveChangesAsync();
+            }
+            catch { }
+
             return Ok(portfolioDto);
         }
 
@@ -317,6 +361,75 @@ namespace DigitalPortfolioBackend.Controllers
                 UpdatedAt = p.UpdatedAt,
                 UserId = p.UserId,
                 UserFullName = p.User?.FullName ?? "Unknown User",
+                SocialMediaLinks = p.SocialMediaLinks.Select(s => new SocialMediaLinkDto
+                {
+                    Id = s.Id,
+                    Platform = s.Platform,
+                    Url = s.Url,
+                    IconName = s.IconName,
+                    CreatedAt = s.CreatedAt,
+                    UpdatedAt = s.UpdatedAt,
+                    PortfolioId = s.PortfolioId
+                }).ToList()
+            }));
+        }
+
+        // Get portfolios that the user has access to (owned + approved access)
+        [Authorize]
+        [HttpGet("accessible")]
+        public async Task<ActionResult<IEnumerable<PortfolioDto>>> GetAccessiblePortfolios()
+        {
+            var userId = GetCurrentUserId();
+            if (!userId.HasValue) return Unauthorized();
+
+            // Get portfolios owned by user
+            var ownedPortfolios = await _context.Portfolios
+                .Include(p => p.User)
+                .Include(p => p.SocialMediaLinks)
+                .Where(p => p.UserId == userId.Value)
+                .ToListAsync();
+
+            // Get portfolios user has approved access to
+            var approvedAccessPortfolios = await _context.Portfolios
+                .Include(p => p.User)
+                .Include(p => p.SocialMediaLinks)
+                .Where(p => _context.AccessRequests.Any(ar => 
+                    ar.PortfolioId == p.Id && 
+                    ar.RequesterUserId == userId.Value && 
+                    ar.Status == AccessRequestStatus.Approved))
+                .ToListAsync();
+
+            // Combine and remove duplicates
+            var allAccessiblePortfolios = ownedPortfolios
+                .Concat(approvedAccessPortfolios)
+                .GroupBy(p => p.Id)
+                .Select(g => g.First())
+                .OrderByDescending(p => p.UpdatedAt)
+                .ToList();
+
+            return Ok(allAccessiblePortfolios.Select(p => new PortfolioDto
+            {
+                Id = p.Id,
+                Title = p.Title,
+                Description = p.Description,
+                ProfileImage = p.ProfileImage,
+                IsPublic = p.IsPublic,
+                // Include section visibility flags
+                IsProjectsPublic = p.IsProjectsPublic,
+                IsEducationPublic = p.IsEducationPublic,
+                IsExperiencePublic = p.IsExperiencePublic,
+                IsSkillsPublic = p.IsSkillsPublic,
+                IsSocialMediaPublic = p.IsSocialMediaPublic,
+                Email = p.Email,
+                Phone = p.Phone,
+                City = p.City,
+                Country = p.Country,
+                CreatedAt = p.CreatedAt,
+                UpdatedAt = p.UpdatedAt,
+                UserId = p.UserId,
+                UserFullName = p.User?.FullName ?? "Unknown User",
+                // Mark if this is accessed via approval (not owned)
+                IsAccessedViaApproval = p.UserId != userId.Value,
                 SocialMediaLinks = p.SocialMediaLinks.Select(s => new SocialMediaLinkDto
                 {
                     Id = s.Id,
@@ -673,16 +786,17 @@ namespace DigitalPortfolioBackend.Controllers
             return NoContent();
         }
 
-        // Download PDF version of portfolio - now returns HTML that auto-prompts print dialog
+        // Download professional PDF version of portfolio
         [HttpGet("{id}/pdf")]
         public async Task<IActionResult> DownloadPortfolioPDF(int id)
         {
             try
             {
-                _logger.LogInformation($"Starting portfolio print view generation for ID: {id}");
+                _logger.LogInformation($"Starting professional portfolio PDF generation for ID: {id}");
 
-                // Check if portfolio exists
+                // Check if portfolio exists and is accessible
                 var portfolio = await _context.Portfolios
+                    .Include(p => p.User)
                     .FirstOrDefaultAsync(p => p.Id == id);
 
                 if (portfolio == null)
@@ -691,35 +805,38 @@ namespace DigitalPortfolioBackend.Controllers
                     return NotFound("Portfolio not found");
                 }
 
-                try
+                // Generate professional PDF
+                var htmlBytes = await _pdfService.GeneratePortfolioPDF(id);
+
+                if (htmlBytes == null || htmlBytes.Length == 0)
                 {
-                    // Generate HTML with print capabilities
-                    _logger.LogInformation($"Generating printable view for portfolio ID: {id}");
-                    var htmlBytes = await _pdfService.GeneratePortfolioPDF(id);
-
-                    if (htmlBytes == null || htmlBytes.Length == 0)
-                    {
-                        _logger.LogError($"Generated content has no data for portfolio ID: {id}");
-                        return StatusCode(500, "Generated content has no data");
-                    }
-
-                    _logger.LogInformation($"Successfully generated printable content ({htmlBytes.Length} bytes) for portfolio ID: {id}");
-
-                    // Return HTML content with a file name that indicates it's for printing
-                    return File(htmlBytes, "text/html", $"portfolio-{id}-print-{DateTime.Now:yyyyMMdd}.html");
+                    _logger.LogError($"Generated PDF content has no data for portfolio ID: {id}");
+                    return StatusCode(500, "Failed to generate portfolio PDF");
                 }
-                catch (Exception ex)
-                {
-                    _logger.LogError($"Error generating printable view for portfolio ID: {id}. Error: {ex.Message}");
-                    _logger.LogError($"Stack trace: {ex.StackTrace}");
-                    return StatusCode(500, $"Error generating printable view: {ex.Message}");
-                }
+
+                _logger.LogInformation($"Successfully generated professional PDF ({htmlBytes.Length} bytes) for portfolio ID: {id}");
+
+                // Create a professional filename with portfolio title and date
+                var safeTitle = portfolio.Title
+                    .Replace(" ", "-")
+                    .Replace("/", "-")
+                    .Replace("\\", "-")
+                    .Replace(":", "")
+                    .Replace("*", "")
+                    .Replace("?", "")
+                    .Replace("<", "")
+                    .Replace(">", "")
+                    .Replace("|", "");
+
+                var fileName = $"Portfoliofy-{safeTitle}-{DateTime.Now:yyyyMMdd}.html";
+
+                return File(htmlBytes, "text/html", fileName);
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Unexpected error in DownloadPortfolioPDF: {ex.Message}");
+                _logger.LogError($"Error generating professional PDF for portfolio ID: {id}. Error: {ex.Message}");
                 _logger.LogError($"Stack trace: {ex.StackTrace}");
-                return StatusCode(500, "An unexpected error occurred while generating the printable view");
+                return StatusCode(500, $"An error occurred while generating the portfolio PDF: {ex.Message}");
             }
         }
 

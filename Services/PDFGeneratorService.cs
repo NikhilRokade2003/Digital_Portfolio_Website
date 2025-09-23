@@ -9,20 +9,20 @@ namespace DigitalPortfolioBackend.Services
     public class PDFGeneratorService
     {
         private readonly AppDbContext _context;
-        private readonly SimplePDFGenerator _simplePdfGenerator;
+        private readonly ProfessionalPDFGenerator _professionalPdfGenerator;
 
-        public PDFGeneratorService(AppDbContext context, SimplePDFGenerator simplePdfGenerator)
+        public PDFGeneratorService(AppDbContext context, ProfessionalPDFGenerator professionalPdfGenerator)
         {
             _context = context;
-            _simplePdfGenerator = simplePdfGenerator;
+            _professionalPdfGenerator = professionalPdfGenerator;
         }
 
         public async Task<byte[]> GeneratePortfolioPDF(int portfolioId)
         {
             try
             {
-                Console.WriteLine($"Generating PDF for portfolio ID: {portfolioId}");
-                return await _simplePdfGenerator.GeneratePortfolioPDF(portfolioId);
+                Console.WriteLine($"Generating professional PDF for portfolio ID: {portfolioId}");
+                return await _professionalPdfGenerator.GeneratePortfolioPDF(portfolioId);
             }
             catch (Exception ex)
             {

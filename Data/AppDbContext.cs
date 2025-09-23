@@ -15,6 +15,9 @@ namespace DigitalPortfolioBackend.Data
         public DbSet<Experience> Experiences { get; set; }
         public DbSet<Skill> Skills { get; set; }
         public DbSet<SocialMediaLink> SocialMediaLinks { get; set; }
+        public DbSet<AccessRequest> AccessRequests { get; set; }
+        public DbSet<Notification> Notifications { get; set; }
+        public DbSet<PortfolioViewLog> PortfolioViewLogs { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -94,6 +97,47 @@ namespace DigitalPortfolioBackend.Data
                     .WithMany(p => p.SocialMediaLinks)
                     .HasForeignKey(s => s.PortfolioId)
                     .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // Configure AccessRequest
+            modelBuilder.Entity<AccessRequest>(entity =>
+            {
+                entity.ToTable("AccessRequests");
+                entity.HasKey(a => a.Id);
+                entity.HasOne(a => a.Portfolio)
+                    .WithMany()
+                    .HasForeignKey(a => a.PortfolioId)
+                    .OnDelete(DeleteBehavior.Cascade);
+                entity.HasOne(a => a.Requester)
+                    .WithMany()
+                    .HasForeignKey(a => a.RequesterUserId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // Configure Notification
+            modelBuilder.Entity<Notification>(entity =>
+            {
+                entity.ToTable("Notifications");
+                entity.HasKey(n => n.Id);
+                entity.HasOne(n => n.User)
+                    .WithMany()
+                    .HasForeignKey(n => n.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // Configure PortfolioViewLog
+            modelBuilder.Entity<PortfolioViewLog>(entity =>
+            {
+                entity.ToTable("PortfolioViewLogs");
+                entity.HasKey(v => v.Id);
+                entity.HasOne(v => v.Portfolio)
+                    .WithMany()
+                    .HasForeignKey(v => v.PortfolioId)
+                    .OnDelete(DeleteBehavior.Cascade);
+                entity.HasOne(v => v.Viewer)
+                    .WithMany()
+                    .HasForeignKey(v => v.ViewerUserId)
+                    .OnDelete(DeleteBehavior.SetNull);
             });
         }
     }

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Navigation from '../components/Navigation';
-import { portfolioAPI, authAPI } from '../../services/api';
+import { portfolioAPI, authAPI, accessRequestAPI } from '../../services/api';
 
 const PublicPortfolios = () => {
   const [portfolios, setPortfolios] = useState([]);
@@ -131,13 +131,38 @@ const PublicPortfolios = () => {
     setShowAdvancedSearch(!showAdvancedSearch);
   };
 
+  const handleRequestAccess = async (portfolioId, portfolioTitle) => {
+    if (!isAuthenticated) {
+      alert('Please log in to request access to portfolios.');
+      return;
+    }
+
+    try {
+      const message = `I would like to request access to view your portfolio: ${portfolioTitle}`;
+      await accessRequestAPI.create(portfolioId, message);
+      alert('Access request sent successfully! The portfolio owner will be notified.');
+      
+      // Trigger notification refresh for all users
+      if (window.refreshNotifications) {
+        window.refreshNotifications();
+      }
+    } catch (error) {
+      console.error('Error requesting access:', error);
+      if (error.response?.status === 400) {
+        alert(error.response.data || 'You may have already requested access to this portfolio.');
+      } else {
+        alert('Failed to send access request. Please try again.');
+      }
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-secondary-50">
+  <div className="min-h-screen bg-gradient-to-br from-violet-50 via-pink-50 via-white via-purple-100 via-neutral-50 to-blue-50">
       <Navigation />
       
       <div className="container mx-auto px-4 py-12">
         <div className="text-center mb-10">
-          <h1 className="text-3xl md:text-4xl font-bold mb-4 text-secondary-900">
+          <h1 className="text-4xl md:text-5xl font-extrabold mb-4 text-secondary-900 bg-clip-text text-transparent bg-gradient-to-r from-primary-700 via-accent-600 to-secondary-700 inline-block">
             Explore Portfolios
           </h1>
           <p className="text-lg text-secondary-700 max-w-2xl mx-auto mb-8">
@@ -358,20 +383,28 @@ const PublicPortfolios = () => {
                       Updated: {new Date(portfolio.updatedAt).toLocaleDateString()}
                     </p>
                     
-                    <Link 
-                      to={`/portfolio/view/${portfolio.id}`}
-                      className={`${
-                        portfolio.isPublic 
-                          ? 'bg-primary-600 hover:bg-primary-700' 
-                          : 'bg-secondary-600 hover:bg-secondary-700'
-                      } text-white py-2 px-6 rounded-md font-medium transition-colors duration-300 shadow-soft inline-flex items-center`}
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                      </svg>
-                      {portfolio.isPublic ? "View Portfolio" : "Request Access"}
-                    </Link>
+                    {portfolio.isPublic ? (
+                      <Link 
+                        to={`/portfolio/view/${portfolio.id}`}
+                        className="bg-primary-600 hover:bg-primary-700 text-white py-2 px-6 rounded-md font-medium transition-colors duration-300 shadow-soft inline-flex items-center"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                        View Portfolio
+                      </Link>
+                    ) : (
+                      <button
+                        onClick={() => handleRequestAccess(portfolio.id, portfolio.title)}
+                        className="bg-secondary-600 hover:bg-secondary-700 text-white py-2 px-6 rounded-md font-medium transition-colors duration-300 shadow-soft inline-flex items-center"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                        </svg>
+                        Request Access
+                      </button>
+                    )}
                   </div>
                 </div>
               ))}

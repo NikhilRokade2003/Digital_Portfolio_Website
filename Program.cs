@@ -21,8 +21,25 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     ));
 
 // Register PDF services
-builder.Services.AddScoped<SimplePDFGenerator>();
+builder.Services.AddScoped<ProfessionalPDFGenerator>();
 builder.Services.AddScoped<PDFGeneratorService>();
+
+// Register Email service with SMTP settings from configuration
+var smtpSection = builder.Configuration.GetSection("Smtp");
+builder.Services.AddSingleton(new SmtpSettings
+{
+    Host = smtpSection.GetValue<string>("Host"),
+    Port = smtpSection.GetValue<int?>("Port") ?? 587,
+    EnableSsl = smtpSection.GetValue<bool?>("EnableSsl") ?? true,
+    Username = smtpSection.GetValue<string>("Username"),
+    Password = smtpSection.GetValue<string>("Password"),
+    FromEmail = smtpSection.GetValue<string>("FromEmail"),
+    FromName = smtpSection.GetValue<string>("FromName")
+});
+builder.Services.AddScoped<EmailService>();
+
+// Register OpenAI service
+builder.Services.AddHttpClient<OpenAIService>();
 
 // Configure CORS to allow frontend requests
 builder.Services.AddCors(options =>
@@ -30,8 +47,8 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowFrontend", policy =>
     {
         // Get allowed origins from configuration or environment variables
-        var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>() 
-            ?? new[] { "http://localhost:3000", "http://localhost:5173" };
+        var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>()
+            ?? new[] { "http://localhost:3000", "http://localhost:5173", "http://localhost:5174" };
             
         policy
             .WithOrigins(allowedOrigins)
@@ -67,8 +84,10 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
             }
         };
 
-        // Set SameSite policy for cookies
+        // Set SameSite policy for cookies (Lax for localhost development)
         options.Cookie.SameSite = SameSiteMode.Lax;
+        // In development over HTTP, allow non-secure cookies
+        options.Cookie.SecurePolicy = CookieSecurePolicy.None;
     });
 
 var app = builder.Build();
@@ -92,7 +111,19 @@ else
 app.UseCors("AllowFrontend");
 
 // Configure static files middleware to serve uploaded files
-app.UseStaticFiles();
+app.UseStaticFiles(new StaticFileOptions
+{
+	OnPrepareResponse = ctx =>
+	{
+		// Allow frontend dev origin to access static assets (e.g., images) for html2canvas/html2pdf
+		var requestOrigin = ctx.Context.Request.Headers["Origin"].ToString();
+		// Allow common localhost frontend ports if Origin header is present
+		var allowOrigin = !string.IsNullOrEmpty(requestOrigin) ? requestOrigin : "http://localhost:5173";
+		ctx.Context.Response.Headers["Access-Control-Allow-Origin"] = allowOrigin;
+		ctx.Context.Response.Headers["Vary"] = "Origin";
+		ctx.Context.Response.Headers["Access-Control-Allow-Credentials"] = "true";
+	}
+});
 
 app.UseRouting();
 

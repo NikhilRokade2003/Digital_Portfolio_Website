@@ -265,6 +265,45 @@ const PortfolioEdit = () => {
     setSuccessMessage('');
     setIsSaving(true);
 
+    // Validate required contact information fields
+    if (!formData.title.trim()) {
+      setError('Portfolio title is required.');
+      setIsSaving(false);
+      return;
+    }
+    
+    if (!formData.email.trim()) {
+      setError('Email is required.');
+      setIsSaving(false);
+      return;
+    }
+    
+    if (!formData.phone.trim()) {
+      setError('Phone number is required.');
+      setIsSaving(false);
+      return;
+    }
+    
+    if (!formData.city.trim()) {
+      setError('City is required.');
+      setIsSaving(false);
+      return;
+    }
+    
+    if (!formData.country.trim()) {
+      setError('Country is required.');
+      setIsSaving(false);
+      return;
+    }
+
+    // Email format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      setError('Please enter a valid email address.');
+      setIsSaving(false);
+      return;
+    }
+
     try {
       // If there's a profile image to upload, do that first
       let profileImageUrl = formData.profileImage;
@@ -615,7 +654,7 @@ const PortfolioEdit = () => {
   const deleteSkill = async (skillId) => {
     if (window.confirm('Are you sure you want to delete this skill?')) {
       try {
-        await skillAPI.deleteSkill(id, skillId);
+  await skillAPI.deleteSkill(skillId);
         const updatedSkills = skills.filter(skill => skill.id !== skillId);
         setSkills(updatedSkills);
         setSuccessMessage('Skill deleted successfully!');
@@ -966,10 +1005,12 @@ const PortfolioEdit = () => {
                 </div>
                 
                 <div className="border-t pt-6 mt-6">
-                  <h4 className="font-bold text-xl mb-4 text-gray-800 border-l-4 border-blue-500 pl-3">Contact Information</h4>
+                  <h4 className="font-bold text-xl mb-4 text-gray-800 border-l-4 border-blue-500 pl-3">
+                    Contact Information <span className="text-red-500 text-sm">(All fields required)</span>
+                  </h4>
                   <div className="mb-4">
                     <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="email">
-                      Email
+                      Email <span className="text-red-500">*</span>
                     </label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -984,13 +1025,15 @@ const PortfolioEdit = () => {
                         value={formData.email}
                         onChange={handlePortfolioChange}
                         className="pl-10 shadow-md appearance-none border border-gray-300 rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300"
+                        placeholder="your.email@example.com"
+                        required
                       />
                     </div>
                   </div>
                   
                   <div className="mb-4">
                     <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="phone">
-                      Phone Number
+                      Phone Number <span className="text-red-500">*</span>
                     </label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -1005,6 +1048,8 @@ const PortfolioEdit = () => {
                         value={formData.phone}
                         onChange={handlePortfolioChange}
                         className="pl-10 shadow-md appearance-none border border-gray-300 rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300"
+                        placeholder="+1 (123) 456-7890"
+                        required
                       />
                     </div>
                   </div>
@@ -1012,7 +1057,7 @@ const PortfolioEdit = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="mb-4">
                       <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="city">
-                        City
+                        City <span className="text-red-500">*</span>
                       </label>
                       <div className="relative">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -1028,13 +1073,15 @@ const PortfolioEdit = () => {
                           value={formData.city}
                           onChange={handlePortfolioChange}
                           className="pl-10 shadow-md appearance-none border border-gray-300 rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300"
+                          placeholder="San Francisco"
+                          required
                         />
                       </div>
                     </div>
                     
                     <div className="mb-4">
                       <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="country">
-                        Country
+                        Country <span className="text-red-500">*</span>
                       </label>
                       <div className="relative">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -1049,6 +1096,8 @@ const PortfolioEdit = () => {
                           value={formData.country}
                           onChange={handlePortfolioChange}
                           className="pl-10 shadow-md appearance-none border border-gray-300 rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300"
+                          placeholder="United States"
+                          required
                         />
                       </div>
                     </div>
@@ -1083,11 +1132,7 @@ const PortfolioEdit = () => {
                       </>
                     ) : (
                       <>
-                        <span className="absolute left-0 inset-y-0 flex items-center pl-3">
-                          <svg className="h-5 w-5 text-white" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                            <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
-                          </svg>
-                        </span>
+                        {/* No icon, just text */}
                         <span className="ml-4">Save Changes</span>
                       </>
                     )}
@@ -1122,15 +1167,14 @@ const PortfolioEdit = () => {
                               )}
                               {link.platform}
                             </h4>
-                            <button 
-                              onClick={() => deleteSocialMediaLink(link.id)}
-                              className="text-red-600 hover:text-red-800 transition-colors flex items-center"
-                            >
-                              <svg className="w-5 h-5 mr-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                                <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
-                              </svg>
-                              Delete
-                            </button>
+                            <div className="flex space-x-2">
+                              <button onClick={() => editSocialMediaLink(link)} className="text-gray-400 hover:text-gray-600 transition-colors" title="Edit">
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 112.828 2.828L11.828 15.828a2 2 0 01-1.414.586H9v-1.414a2 2 0 01.586-1.414z" /></svg>
+                              </button>
+                              <button onClick={() => deleteSocialMediaLink(link.id)} className="text-gray-400 hover:text-gray-600 transition-colors" title="Delete">
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                              </button>
+                            </div>
                           </div>
                           <div className="mt-3">
                             <a 
@@ -1251,7 +1295,7 @@ const PortfolioEdit = () => {
                         <>
                           <span className="absolute left-0 inset-y-0 flex items-center pl-3">
                             <svg className="h-5 w-5 text-white" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                              <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                              <path fillRule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clipRule="evenodd" />
                             </svg>
                           </span>
                           <span className="ml-4">Add Social Media Link</span>
@@ -1443,7 +1487,7 @@ const PortfolioEdit = () => {
                         <>
                           <span className="absolute left-0 inset-y-0 flex items-center pl-3">
                             <svg className="h-5 w-5 text-white" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                              <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                              <path fillRule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clipRule="evenodd" />
                             </svg>
                           </span>
                           <span className="ml-4">Add Project</span>
@@ -1607,7 +1651,7 @@ const PortfolioEdit = () => {
                         <>
                           <span className="absolute left-0 inset-y-0 flex items-center pl-3">
                             <svg className="h-5 w-5 text-white" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                              <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                              <path fillRule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clipRule="evenodd" />
                             </svg>
                           </span>
                           <span className="ml-4">Add Education</span>
@@ -1769,7 +1813,7 @@ const PortfolioEdit = () => {
                         <>
                           <span className="absolute left-0 inset-y-0 flex items-center pl-3">
                             <svg className="h-5 w-5 text-white" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                              <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                              <path fillRule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clipRule="evenodd" />
                             </svg>
                           </span>
                           <span className="ml-4">Add Experience</span>
@@ -1789,18 +1833,14 @@ const PortfolioEdit = () => {
                   <div className="mb-8">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       {skills.map(skill => (
-                        <div key={skill.id} className="border border-gray-200 rounded-xl p-5 shadow-md hover:shadow-lg transition-all bg-gray-50 to-white">
+                        <div key={skill.id} className="border border-gray-200 rounded-xl p-5 shadow-md hover:shadow-lg transition-all bg-gradient-to-r from-violet-50 to-white">
                           <div className="flex justify-between items-start">
                             <h4 className="font-bold text-lg text-gray-800">{skill.name}</h4>
-                            <button 
-                              onClick={() => deleteSkill(skill.id)}
-                              className="text-red-600 hover:text-red-800 transition-colors flex items-center"
-                            >
-                              <svg className="w-5 h-5 mr-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                                <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
-                              </svg>
-                              Remove
-                            </button>
+                            <div>
+                              <button onClick={() => deleteSkill(skill.id)} className="text-gray-400 hover:text-gray-600 transition-colors" title="Delete">
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                              </button>
+                            </div>
                           </div>
                           <div className="mt-3">
                             <div className="flex items-center">
@@ -1885,7 +1925,7 @@ const PortfolioEdit = () => {
                         <>
                           <span className="absolute left-0 inset-y-0 flex items-center pl-3">
                             <svg className="h-5 w-5 text-white" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                              <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                              <path fillRule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clipRule="evenodd" />
                             </svg>
                           </span>
                           <span className="ml-4">Add Skill</span>

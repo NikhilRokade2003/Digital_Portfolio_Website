@@ -5,6 +5,50 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Vite + React</title>
+    <!-- Comprehensive console suppression for React DevTools and errors -->
+    <script>
+      (function() {
+        const originalLog = console.log;
+        const originalError = console.error;
+        
+        console.log = function(...args) {
+          if (args.length > 0 && typeof args[0] === 'string' && 
+              (args[0].includes('Download the React DevTools') || 
+               args[0].includes('react-devtools') ||
+               args[0].includes('https://reactjs.org/link/react-devtools'))) {
+            return;
+          }
+          originalLog.apply(console, args);
+        };
+        
+        console.error = function(...args) {
+          if (args.length > 0 && typeof args[0] === 'string' && 
+              (args[0].includes('The above error occurred') ||
+               args[0].includes('Consider adding an error boundary'))) {
+            return;
+          }
+          originalError.apply(console, args);
+        };
+        
+        // Override after DOM is loaded for chunk-based messages
+        document.addEventListener('DOMContentLoaded', function() {
+          setTimeout(() => {
+            const globalConsoleLog = window.console.log;
+            window.console.log = function(...args) {
+              if (args.length > 0 && typeof args[0] === 'string' && 
+                  (args[0].includes('Download the React DevTools') ||
+                   args[0].includes('react-devtools'))) {
+                return;
+              }
+              return globalConsoleLog.apply(window.console, args);
+            };
+          }, 100);
+        });
+      })();
+    </script>
+    <!-- Three.js and Vanta.js for 3D NET effects -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.net.min.js"></script>
   </head>
   <body>
     <div id="root"></div>

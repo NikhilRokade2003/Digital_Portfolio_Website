@@ -25,6 +25,9 @@ namespace DigitalPortfolioBackend.DTOs
         public int UserId { get; set; }
         public required string UserFullName { get; set; }
         
+        // Indicates if this portfolio is accessed via an approved access request (not owned)
+        public bool IsAccessedViaApproval { get; set; } = false;
+        
         public List<ProjectDto> Projects { get; set; } = new List<ProjectDto>();
         public List<EducationDto> Educations { get; set; } = new List<EducationDto>();
         public List<ExperienceDto> Experiences { get; set; } = new List<ExperienceDto>();
