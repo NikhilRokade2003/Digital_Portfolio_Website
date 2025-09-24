@@ -1,4 +1,6 @@
-﻿{
+﻿// It controls how your backend project starts during development.
+
+{
   "$schema": "https://json.schemastore.org/launchsettings.json",
   "profiles": {
     "http": {
