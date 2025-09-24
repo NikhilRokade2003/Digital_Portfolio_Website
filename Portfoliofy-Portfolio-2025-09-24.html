@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+    <meta charset='UTF-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <title>Data Scientist and Analyst - Portfoliofy Digital Portfolio</title>
+    <style>
+        @page {
+            margin: 1.5cm;
+            size: A4;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #1a1a1a;
+            line-height: 1.6;
+            background-color: white;
+            position: relative;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+        
+
+        
+        /* Portfoliofy watermark */
+        .watermark {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-45deg);
+            font-size: 100px;
+            font-weight: bold;
+            color: rgba(79, 70, 229, 0.02);
+            z-index: -1;
+            user-select: none;
+            pointer-events: none;
+            font-family: Impact, Arial Black, sans-serif;
+        }
+        
+        .container {
+            padding: 15mm;
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* Header section */
+        .header { 
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 25px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(79, 70, 229, 0.15);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 2px,
+                rgba(255,255,255,0.03) 2px,
+                rgba(255,255,255,0.03) 4px
+            );
+            animation: shimmer 20s linear infinite;
+        }
+        
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        
+        .brand-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .brand-logo {
+            font-size: 20px;
+            font-weight: bold;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .generated-date {
+            font-size: 11px;
+            color: rgba(255,255,255,0.8);
+            background: rgba(255,255,255,0.1);
+            padding: 4px 8px;
+            border-radius: 15px;
+        }
+        
+        .profile-section {
+            position: relative;
+            z-index: 2;
+        }
+        
+        .profile-image {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid white;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        
+        .portfolio-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 0 0 8px 0;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.2);
+        }
+        
+        .portfolio-author {
+            font-size: 16px;
+            font-weight: 300;
+            margin: 0;
+            opacity: 0.9;
+        }
+        
+        /* Section styling */
+        .section { 
+            margin-bottom: 25px;
+            page-break-inside: avoid;
+        }
+        
+        .section-title { 
+            color: #4F46E5;
+            font-size: 18px;
+            font-weight: 600;
+            border-bottom: 2px solid #E0E7FF;
+            padding-bottom: 8px;
+            margin-bottom: 15px;
+            position: relative;
+        }
+        
+        .section-title::before {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 40px;
+            height: 2px;
+            background: linear-gradient(90deg, #4F46E5, #7C3AED);
+        }
+        
+        /* Content cards */
+        .content-card {
+            background-color: #F8FAFC;
+            border: 1px solid #E2E8F0;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border-left: 4px solid #4F46E5;
+        }
+        
+        .card-title {
+            color: #1E293B;
+            font-size: 16px;
+            font-weight: 600;
+            margin: 0 0 8px 0;
+        }
+        
+        .card-subtitle {
+            color: #64748B;
+            font-size: 13px;
+            font-weight: 500;
+            margin: 0 0 6px 0;
+        }
+        
+        .card-date {
+            color: #94A3B8;
+            font-size: 11px;
+            margin: 0 0 8px 0;
+            font-style: italic;
+        }
+        
+        .card-description {
+            color: #475569;
+            font-size: 13px;
+            line-height: 1.5;
+            margin: 8px 0 0 0;
+        }
+        
+        /* Contact information */
+        .contact-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+            margin-top: 10px;
+        }
+        
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px;
+            background-color: #F1F5F9;
+            border-radius: 6px;
+            font-size: 12px;
+        }
+        
+        .contact-icon {
+            width: 16px;
+            height: 16px;
+            color: #4F46E5;
+            flex-shrink: 0;
+        }
+        
+        /* Skills styling */
+        .skills-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        
+        .skill-tag { 
+            display: inline-block;
+            padding: 6px 12px;
+            background: linear-gradient(135deg, #EEF2FF, #E0E7FF);
+            color: #4338CA;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 500;
+            border: 1px solid #C7D2FE;
+        }
+        
+        /* Project images */
+        .project-image {
+            max-width: 100%;
+            max-height: 120px;
+            margin: 8px 0;
+            border-radius: 6px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        /* Links */
+        a {
+            color: #4F46E5;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        a:hover {
+            text-decoration: underline;
+        }
+        
+        /* Footer */
+        .footer { 
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            background: linear-gradient(135deg, #F8FAFC, #F1F5F9);
+            border-radius: 12px;
+            border: 2px solid #E2E8F0;
+        }
+        
+        .footer-brand {
+            font-size: 16px;
+            font-weight: bold;
+            color: #4F46E5;
+            margin-bottom: 8px;
+        }
+        
+        .footer-text {
+            font-size: 10px;
+            color: #64748B;
+            line-height: 1.4;
+        }
+        
+        /* Print button */
+        .print-button {
+            background: linear-gradient(135deg, #4F46E5, #7C3AED);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
+            transition: all 0.3s ease;
+            margin: 20px auto;
+            display: block;
+        }
+        
+        .print-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4);
+        }
+        
+        @media print {
+            .print-button { display: none !important; }
+            body { 
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            .page-border { 
+                display: block !important;
+                position: fixed !important;
+                top: 8mm !important;
+                left: 8mm !important;
+                right: 8mm !important;
+                bottom: 8mm !important;
+            }
+            .container {
+                padding: 12mm !important;
+            }
+        }
+    </style>
+    <script>
+        function printDocument() {
+            window.print();
+        }
+        window.onload = function() {
+            document.getElementById('printButton').addEventListener('click', printDocument);
+            // Auto-print after 2 seconds
+            setTimeout(function() {
+                window.print();
+            }, 2000);
+        };
+    </script>
+</head>
+<body>
+
+    
+    <!-- Portfoliofy watermark -->
+    <div class='watermark'>PORTFOLIOFY</div>
+    
+    <button id='printButton' class='print-button'>📄 Download as PDF</button>
+    
+    <div class='container'>
+        <!-- Header with branding -->
+        <div class='header'>
+            <div class='brand-header'>
+                <div class='brand-logo'>📋 PORTFOLIOFY</div>
+                <div class='generated-date'>Generated: Sep 24, 2025 12:48</div>
+            </div>
+            <div class='profile-section'>
+                <img src='http://localhost:5163/uploads/profiles/1d0510be-44b0-448d-ab1e-65d87ea1be89.jpg' alt='Profile' class='profile-image'>
+                <h1 class='portfolio-title'>Data Scientist and Analyst</h1>
+                <p class='portfolio-author'>by Nikhil Rokade</p>
+            </div>
+        </div>
+                <div class='section'>
+                    <h2 class='section-title'>About Me</h2>
+                    <div class='content-card'>
+                        <p class='card-description'>Data Science and AI enthusiast with hands-on experience in Python, SQL, machine learning, and deep
+learning. Proficient in developing AI-driven solutions for real-world problems, including automation,
+geospatial analysis, and predictive modeling. Experienced in web-based tool development using Flask and
+Streamlit, and adept at handling large datasets, feature engineering, and model optimization.
+</p>
+                    </div>
+                </div>
+                <div class='section'>
+                    <h2 class='section-title'>Contact Information</h2>
+                    <div class='content-card'>
+                        <div class='contact-grid'>
+                        <div class='contact-item'>
+                            <svg class='contact-icon' fill='currentColor' viewBox='0 0 20 20'>
+                                <path d='M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z'/>
+                                <path d='M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z'/>
+                            </svg>
+                            <div><strong>Email:</strong><br/>nikhil.rokade@jadeglobal.com</div>
+                        </div>
+                        <div class='contact-item'>
+                            <svg class='contact-icon' fill='currentColor' viewBox='0 0 20 20'>
+                                <path d='M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z'/>
+                            </svg>
+                            <div><strong>Phone:</strong><br/>+91 8956122003</div>
+                        </div>
+                        <div class='contact-item'>
+                            <svg class='contact-icon' fill='currentColor' viewBox='0 0 20 20'>
+                                <path fill-rule='evenodd' d='M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z' clip-rule='evenodd'/>
+                            </svg>
+                            <div><strong>Location:</strong><br/>Pune, India</div>
+                        </div>
+                        </div>
+                    </div>
+                </div>
+                <div class='section'>
+                    <h2 class='section-title'>Projects</h2>
+                    <div class='content-card'>
+                        <h3 class='card-title'>Micro-SaaS-Tool</h3><p class='card-description'>A comprehensive document generation platform that allows users to create professional invoices, resumes, certificates, and QR codes with a modern web interface.</p><p style='margin-top: 8px; font-size: 12px;'><strong>URL:</strong> <a href='https://github.com/NikhilRokade2003/Micro_SaaS_Tool_HealBharat.git'>https://github.com/NikhilRokade2003/Micro_SaaS_Tool_HealBharat.git</a></p></div></div>
+                <div class='section'>
+                    <h2 class='section-title'>Education</h2>
+                    <div class='content-card'>
+                        <h3 class='card-title'>Bachleors of Science</h3>
+                        <p class='card-subtitle'>Savitribai Phule Pune University</p><p class='card-subtitle'>Field: Data Science and Artificial Intelligence</p><p class='card-date'>Dec 2022 - Jun 2025</p></div></div>
+                <div class='section'>
+                    <h2 class='section-title'>Experience</h2>
+                    <div class='content-card'>
+                        <h3 class='card-title'>Data Scientist</h3>
+                        <p class='card-subtitle'>Sgurr Energy Pvt Ltd</p><p class='card-date'>Dec 2024 - Mar 2025</p><p class='card-description'>Worked on developing Python-based geospatial and engineering tools, including Streamlit applications for TIFF
+metadata analysis, multi-band raster creation, and KMZ file generation from Excel data. </p></div></div>
+                <div class='section'>
+                    <h2 class='section-title'>Skills & Expertise</h2>
+                    <div class='content-card'>
+                        <div class='skills-container'><span class='skill-tag'>C</span><span class='skill-tag'>NoSQL</span><span class='skill-tag'>Python</span><span class='skill-tag'>SQL</span>
+                        </div>
+                    </div>
+                </div>
+                <div class='section'>
+                    <h2 class='section-title'>Connect With Me</h2>
+                    <div class='content-card'>
+                        <h3 class='card-title'>GitHub</h3>
+                        <p><a href='https://github.com/NikhilRokade2003'>https://github.com/NikhilRokade2003</a></p>
+                    </div>
+                    <div class='content-card'>
+                        <h3 class='card-title'>LinkedIn</h3>
+                        <p><a href='https://www.linkedin.com/in/nikhil-rokade-v22122023/'>https://www.linkedin.com/in/nikhil-rokade-v22122023/</a></p>
+                    </div>
+                    <div class='content-card'>
+                        <h3 class='card-title'>YouTube</h3>
+                        <p><a href='https://www.youtube.com/feed/you'>https://www.youtube.com/feed/you</a></p>
+                    </div></div>
+        <div class='footer'>
+            <div class='footer-brand'>📋 PORTFOLIOFY</div>
+            <div class='footer-text'>
+                <p><strong>Digital Portfolio Platform - Empowering Professionals Worldwide</strong></p>
+                <p>Generated on September 24, 2025 at 12:48</p>
+                <p>Visit <strong>Portfoliofy.com</strong> to create your professional digital portfolio today!</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
