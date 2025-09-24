@@ -11,6 +11,8 @@ obj/
 
 # Environment Files
 appsettings.Development.json
+appsettings.Local.json
+appsettings.Personal.json
 
 # Logs
 *.log
